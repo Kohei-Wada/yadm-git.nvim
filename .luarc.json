@@ -1,0 +1,12 @@
+{
+    "diagnostics.globals": [
+        "describe",
+        "it",
+        "after_each",
+        "before_each"
+    ],
+    "diagnostics.disable": [
+        "undefined-field",
+        "unused-local"
+    ]
+}
