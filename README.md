@@ -2,6 +2,15 @@
 
 yadm-git.nvim is a lightweight Neovim plugin that enables you to use Neovim's built-in Git features to manage your dotfiles (home directory) tracked by [yadm](https://yadm.io).
 
+## What this plugin does
+
+This plugin automatically detects if you're editing files under yadm's control
+(e.g. `$HOME/.config`, `$HOME/.bashrc`, etc.), and sets appropriate Git
+environment variables so that Git-based plugins (like `gitsigns.nvim`, `fugitive`,
+`lazygit.nvim`, etc.) can function properly within the yadm repository.
+
+No commands. No user interaction. It just works.
+
 ## Requirements
 
 - Neovim 0.10 or later
@@ -33,6 +42,16 @@ Plug 'Kohei-Wada/yadm-git.nvim'
 require('yadm-git').setup({
   debug = false,
 })
+```
+
+### lazy.nvim
+
+```lua
+return {
+  "Kohei-Wada/yadm-git.nvim",
+  lazy = true,
+  event = "VeryLazy",
+}
 ```
 
 ## Configuration (Options)
