@@ -6,7 +6,7 @@ M.defaults = {
 
 M.setup = function(user_opts)
   user_opts = user_opts or {}
-  M.opts = vim.tbl_deep_extend('force', M.defaults, user_opts)
+  M.opts = vim.tbl_deep_extend("force", M.defaults, user_opts)
 end
 
 return M
