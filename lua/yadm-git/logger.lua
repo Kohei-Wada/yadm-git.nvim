@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 local opts = require('yadm-git.options').opts
 
 M.log = function(msg, level)
