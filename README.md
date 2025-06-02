@@ -44,6 +44,16 @@ require('yadm-git').setup({
 })
 ```
 
+### lazy.nvim
+
+```lua
+return {
+  "Kohei-Wada/yadm-git.nvim",
+  lazy = true,
+  event = "VeryLazy",
+}
+```
+
 ## Configuration (Options)
 
 | Option | Type    | Default | Description                       |
