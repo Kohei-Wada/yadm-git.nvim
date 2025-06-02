@@ -1,13 +1,13 @@
 local M = {}
 
-local logger = require("yadm-git.logger")
+local logger = require "yadm-git.logger"
 
 function M.is_inside_git_worktree()
   local obj = vim.system({ "git", "rev-parse", "--is-inside-work-tree" }, { stderr = false }):wait()
   if obj.code ~= 0 then
     return false
   end
-  return obj.stdout:match("^true") ~= nil
+  return obj.stdout:match "^true" ~= nil
 end
 
 function M.is_inside_yadm_worktree()
@@ -15,7 +15,7 @@ function M.is_inside_yadm_worktree()
   if obj.code ~= 0 then
     return false
   end
-  return obj.stdout:match("^true") ~= nil
+  return obj.stdout:match "^true" ~= nil
 end
 
 function M.is_yadm_managed()
