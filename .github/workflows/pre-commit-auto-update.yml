@@ -1,0 +1,32 @@
+name: Update pre-commit version
+
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Upgrade pre-commit
+        run: |
+          pip install --upgrade pre-commit
+          pre-commit --version
+          pre-commit autoupdate
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [[ $(git status --porcelain) ]]; then
+            git add .
+            git commit -m "Update pre-commit hooks"
+            git push
+          else
+            echo "No changes to commit"
+          fi
