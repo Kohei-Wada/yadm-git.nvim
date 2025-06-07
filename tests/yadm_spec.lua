@@ -1,5 +1,5 @@
-local yadm = require("yadm-git.yadm")
-local stub = require("luassert.stub")
+local yadm = require "yadm-git.yadm"
+local stub = require "luassert.stub"
 
 describe("yadm-git.yadm", function()
   local orig_vim_system
@@ -11,7 +11,7 @@ describe("yadm-git.yadm", function()
     orig_vim_system = vim.system
     orig_vim_env = vim.env
     orig_os_getenv = os.getenv
-    logger = require("yadm-git.logger")
+    logger = require "yadm-git.logger"
     stub(logger, "warn")
     vim.env = {}
   end)
@@ -30,7 +30,7 @@ describe("yadm-git.yadm", function()
         return {
           wait = function()
             return { code = 0, stdout = "true\n" }
-          end
+          end,
         }
       end
       assert.is_true(yadm.is_inside_git_worktree())
@@ -42,7 +42,7 @@ describe("yadm-git.yadm", function()
         return {
           wait = function()
             return { code = 0, stdout = "false\n" }
-          end
+          end,
         }
       end
       assert.is_false(yadm.is_inside_git_worktree())
@@ -53,7 +53,7 @@ describe("yadm-git.yadm", function()
         return {
           wait = function()
             return { code = 1, stdout = "" }
-          end
+          end,
         }
       end
       assert.is_false(yadm.is_inside_git_worktree())
@@ -66,7 +66,7 @@ describe("yadm-git.yadm", function()
         return {
           wait = function()
             return { code = 0, stdout = "true\n" }
-          end
+          end,
         }
       end
       assert.is_true(yadm.is_inside_yadm_worktree())
@@ -77,7 +77,7 @@ describe("yadm-git.yadm", function()
         return {
           wait = function()
             return { code = 0, stdout = "false\n" }
-          end
+          end,
         }
       end
       assert.is_false(yadm.is_inside_yadm_worktree())
@@ -88,7 +88,7 @@ describe("yadm-git.yadm", function()
         return {
           wait = function()
             return { code = 1, stdout = "" }
-          end
+          end,
         }
       end
       assert.is_false(yadm.is_inside_yadm_worktree())
@@ -127,11 +127,13 @@ describe("yadm-git.yadm", function()
         return {
           wait = function()
             return { code = 0, stdout = " /tmp/yadm.git \n" }
-          end
+          end,
         }
       end
       os.getenv = function(var)
-        if var == "HOME" then return "/home/testuser" end
+        if var == "HOME" then
+          return "/home/testuser"
+        end
       end
       yadm.setup_yadm_env()
       assert.equals("/tmp/yadm.git", vim.env.GIT_DIR)
@@ -143,11 +145,11 @@ describe("yadm-git.yadm", function()
         return {
           wait = function()
             return { code = 1, stdout = "" }
-          end
+          end,
         }
       end
       yadm.setup_yadm_env()
-      assert.stub(logger.warn).was_called_with("Could not determine yadm git-dir")
+      assert.stub(logger.warn).was_called_with "Could not determine yadm git-dir"
     end)
 
     it("warns and returns if yadm returns empty path", function()
@@ -155,11 +157,11 @@ describe("yadm-git.yadm", function()
         return {
           wait = function()
             return { code = 0, stdout = "\n" }
-          end
+          end,
         }
       end
       yadm.setup_yadm_env()
-      assert.stub(logger.warn).was_called_with("Could not determine yadm git-dir")
+      assert.stub(logger.warn).was_called_with "Could not determine yadm git-dir"
     end)
   end)
 end)
