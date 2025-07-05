@@ -39,12 +39,14 @@ describe("yadm-git.yadm", function()
 
   describe("is_inside_git_worktree", function()
     it("returns true when .git directory exists", function()
-      vim.fn.finddir.returns "/some/path/.git"
+      vim.fn.getcwd.returns "/some/path"
+      vim.fn.finddir.on_call_with(".git", "/some/path;").returns "/some/path/.git"
       assert.is_true(yadm.is_inside_git_worktree())
     end)
 
     it("returns false when .git directory does not exist", function()
-      vim.fn.finddir.returns ""
+      vim.fn.getcwd.returns "/some/path"
+      vim.fn.finddir.on_call_with(".git", "/some/path;").returns ""
       assert.is_false(yadm.is_inside_git_worktree())
     end)
   end)
@@ -84,11 +86,11 @@ describe("yadm-git.yadm", function()
   describe("is_yadm_managed", function()
     it("returns true when not in git but has yadm repo and under HOME", function()
       -- No .git directory
-      vim.fn.finddir.returns ""
+      vim.fn.getcwd.returns "/home/testuser/.config/nvim"
+      vim.fn.finddir.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
       -- Has yadm repo
       vim.fn.isdirectory.on_call_with("/home/testuser/.local/share/yadm/repo.git").returns(1)
       -- Under HOME
-      vim.fn.getcwd.returns "/home/testuser/.config/nvim"
       vim.fn.fnamemodify.returns "/home/testuser/.config/nvim/"
 
       assert.is_true(yadm.is_yadm_managed())
@@ -96,14 +98,16 @@ describe("yadm-git.yadm", function()
 
     it("returns false when in git repository", function()
       -- Has .git directory
-      vim.fn.finddir.returns "/some/project/.git"
+      vim.fn.getcwd.returns "/some/project"
+      vim.fn.finddir.on_call_with(".git", "/some/project;").returns "/some/project/.git"
 
       assert.is_false(yadm.is_yadm_managed())
     end)
 
     it("returns false when no yadm repo exists", function()
       -- No .git directory
-      vim.fn.finddir.returns ""
+      vim.fn.getcwd.returns "/home/testuser/.config"
+      vim.fn.finddir.on_call_with(".git", "/home/testuser/.config;").returns ""
       -- No yadm repo
       vim.fn.isdirectory.returns(0)
 
@@ -112,11 +116,11 @@ describe("yadm-git.yadm", function()
 
     it("returns false when not under HOME", function()
       -- No .git directory
-      vim.fn.finddir.returns ""
+      vim.fn.getcwd.returns "/tmp/test"
+      vim.fn.finddir.on_call_with(".git", "/tmp/test;").returns ""
       -- Has yadm repo
       vim.fn.isdirectory.on_call_with("/home/testuser/.local/share/yadm/repo.git").returns(1)
       -- Not under HOME
-      vim.fn.getcwd.returns "/tmp/test"
       vim.fn.fnamemodify.returns "/tmp/test/"
 
       assert.is_false(yadm.is_yadm_managed())
