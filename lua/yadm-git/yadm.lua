@@ -10,6 +10,10 @@ end
 
 -- Get yadm repository path if it exists
 local function get_yadm_repo_path()
+  if not vim.env.HOME then
+    logger.warn "HOME environment variable is not set"
+    return nil
+  end
   -- Check modern location first (v3+)
   local xdg_data = vim.env.XDG_DATA_HOME or (vim.env.HOME .. "/.local/share")
   local modern_path = xdg_data .. "/yadm/repo.git"
