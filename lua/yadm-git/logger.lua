@@ -1,7 +1,7 @@
 local M = {}
-local opts = require("yadm-git.options").opts
 
 M.log = function(msg, level)
+  local opts = require("yadm-git.options").opts
   if opts.debug then
     vim.notify("[yadm-git] " .. msg, level or vim.log.levels.INFO)
   end
