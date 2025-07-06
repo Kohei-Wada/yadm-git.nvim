@@ -167,4 +167,38 @@ describe("yadm-git.yadm", function()
       assert.is_nil(vim.env.GIT_WORK_TREE)
     end)
   end)
+
+  describe("clear_yadm_env", function()
+    it("clears GIT_DIR and GIT_WORK_TREE environment variables", function()
+      -- Set up environment variables first
+      vim.env.GIT_DIR = "/home/testuser/.local/share/yadm/repo.git"
+      vim.env.GIT_WORK_TREE = "/home/testuser"
+
+      yadm.clear_yadm_env()
+
+      assert.is_nil(vim.env.GIT_DIR)
+      assert.is_nil(vim.env.GIT_WORK_TREE)
+    end)
+
+    it("logs info message when clearing environment", function()
+      vim.env.GIT_DIR = "/some/path"
+      vim.env.GIT_WORK_TREE = "/some/other/path"
+
+      yadm.clear_yadm_env()
+
+      assert.stub(logger.info).was_called_with "Cleared yadm environment variables"
+    end)
+
+    it("works correctly even when environment variables are already nil", function()
+      vim.env.GIT_DIR = nil
+      vim.env.GIT_WORK_TREE = nil
+
+      -- Should not error
+      yadm.clear_yadm_env()
+
+      assert.is_nil(vim.env.GIT_DIR)
+      assert.is_nil(vim.env.GIT_WORK_TREE)
+      assert.stub(logger.info).was_called_with "Cleared yadm environment variables"
+    end)
+  end)
 end)
