@@ -70,11 +70,11 @@ describe("event", function()
   end)
 
   describe("setup_auto_commands", function()
-    it("should create DirChanged autocmd", function()
+    it("should create VimEnter and DirChanged autocmd", function()
       event.setup_auto_commands()
 
       assert.spy(vim.api.nvim_create_autocmd).was_called(1)
-      assert.spy(vim.api.nvim_create_autocmd).was_called_with("DirChanged", match.is_table())
+      assert.spy(vim.api.nvim_create_autocmd).was_called_with({"VimEnter", "DirChanged"}, match.is_table())
 
       local args = vim.api.nvim_create_autocmd.calls[1].vals[2]
       assert.equals("*", args.pattern)
@@ -120,7 +120,7 @@ describe("event", function()
       callback()
 
       assert.spy(yadm.is_yadm_managed).was_called(1)
-      assert.spy(logger.info).was_called_with "Directory is still YADM managed. Updating environment."
+      assert.spy(logger.info).was_called_with "Directory is YADM managed. Updating environment."
       assert.spy(yadm.setup_yadm_env).was_called(1)
       assert.spy(state.activate).was_called_with "/test/yadm/repo.git"
 
