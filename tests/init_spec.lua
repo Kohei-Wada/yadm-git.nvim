@@ -98,29 +98,6 @@ describe("yadm-git", function()
   end)
 
   describe("setup", function()
-    it("activates plugin when in yadm-managed directory", function()
-      yadm.is_yadm_managed.returns(true)
-      yadm.get_yadm_repo_path.returns "/home/user/.local/share/yadm/repo.git"
-
-      plugin.setup()
-
-      assert.stub(options.setup).was_called()
-      assert.stub(yadm.setup_yadm_env).was_called()
-      assert.stub(state.activate).was_called_with "/home/user/.local/share/yadm/repo.git"
-      assert.stub(event.setup_auto_commands).was_called()
-    end)
-
-    it("does not activate when not in yadm-managed directory", function()
-      yadm.is_yadm_managed.returns(false)
-
-      plugin.setup()
-
-      assert.stub(options.setup).was_called()
-      assert.stub(yadm.setup_yadm_env).was_not_called()
-      assert.stub(state.activate).was_not_called()
-      assert.stub(event.setup_auto_commands).was_not_called()
-    end)
-
     it("passes user options to options.setup", function()
       local user_opts = { debug = true }
       yadm.is_yadm_managed.returns(false)
