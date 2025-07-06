@@ -81,6 +81,13 @@ function M.setup_yadm_env()
   logger.info("Set GIT_DIR=" .. yadm_repo .. " GIT_WORK_TREE=" .. vim.env.HOME)
 end
 
+function M.clear_yadm_env()
+  -- Clear yadm-related environment variables
+  vim.env.GIT_DIR = nil
+  vim.env.GIT_WORK_TREE = nil
+  logger.info "Cleared yadm environment variables"
+end
+
 -- Keep these for backwards compatibility with tests
 function M.is_inside_git_worktree()
   return has_local_git_dir()

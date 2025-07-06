@@ -24,8 +24,23 @@ M.setup = function(user_opts)
   end
 
   logger.info "YADM managed repository detected. Setting up environment."
-  -- Set up the YADM environment
   yadm.setup_yadm_env()
+
+  vim.api.nvim_create_autocmd("DirChanged", {
+    callback = function()
+      if not yadm.is_yadm_managed() then
+        logger.warn "Directory changed to non-YADM managed directory. Deactivating plugin."
+        yadm.clear_yadm_env()
+        M._state.is_active = false
+        M._state.yadm_repo_path = nil
+      else
+        logger.info "Directory is still YADM managed. Updating environment."
+        yadm.setup_yadm_env()
+        M._state.is_active = true
+        M._state.yadm_repo_path = yadm.get_yadm_repo_path()
+      end
+    end,
+  })
 
   -- Update state
   M._state.is_active = true
