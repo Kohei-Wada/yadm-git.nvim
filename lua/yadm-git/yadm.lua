@@ -88,14 +88,4 @@ function M.clear_yadm_env()
   logger.info "Cleared yadm environment variables"
 end
 
--- Keep these for backwards compatibility with tests
-function M.is_inside_git_worktree()
-  return has_local_git_dir()
-end
-
-function M.is_inside_yadm_worktree()
-  local yadm_repo = M.get_yadm_repo_path()
-  return yadm_repo ~= nil and is_under_home()
-end
-
 return M
