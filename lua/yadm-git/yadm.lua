@@ -9,7 +9,7 @@ local function has_local_git_dir()
 end
 
 -- Get yadm repository path if it exists
-local function get_yadm_repo_path()
+function M.get_yadm_repo_path()
   if not vim.env.HOME then
     logger.warn "HOME environment variable is not set"
     return nil
@@ -52,7 +52,7 @@ function M.is_yadm_managed()
   end
 
   -- Check if yadm repository exists
-  local yadm_repo = get_yadm_repo_path()
+  local yadm_repo = M.get_yadm_repo_path()
   if not yadm_repo then
     logger.debug "No yadm repository found"
     return false
@@ -70,7 +70,7 @@ end
 
 -- Setup yadm environment variables
 function M.setup_yadm_env()
-  local yadm_repo = get_yadm_repo_path()
+  local yadm_repo = M.get_yadm_repo_path()
   if not yadm_repo then
     logger.warn "Could not find yadm repository"
     return
@@ -87,7 +87,7 @@ function M.is_inside_git_worktree()
 end
 
 function M.is_inside_yadm_worktree()
-  local yadm_repo = get_yadm_repo_path()
+  local yadm_repo = M.get_yadm_repo_path()
   return yadm_repo ~= nil and is_under_home()
 end
 
