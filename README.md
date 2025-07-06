@@ -49,8 +49,7 @@ require('yadm-git').setup({
 ```lua
 return {
   "Kohei-Wada/yadm-git.nvim",
-  lazy = true,
-  event = "VeryLazy",
+  lazy = false,
 }
 ```
 
