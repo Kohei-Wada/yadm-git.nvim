@@ -1,3 +1,6 @@
+local spy = require "luassert.spy"
+local match = require "luassert.match"
+
 describe("event", function()
   local event
   local state
@@ -13,31 +16,39 @@ describe("event", function()
 
     -- Mock dependencies
     state = {
-      activate = spy.new(function() end),
-      deactivate = spy.new(function() end),
+      activate = function() end,
+      deactivate = function() end,
     }
+    state.activate = spy.new(state.activate)
+    state.deactivate = spy.new(state.deactivate)
     package.preload["yadm-git.state"] = function()
       return state
     end
 
     logger = {
-      info = spy.new(function() end),
-      warn = spy.new(function() end),
+      info = function() end,
+      warn = function() end,
     }
+    logger.info = spy.new(logger.info)
+    logger.warn = spy.new(logger.warn)
     package.preload["yadm-git.logger"] = function()
       return logger
     end
 
     yadm = {
-      is_yadm_managed = spy.new(function()
+      is_yadm_managed = function()
         return false
-      end),
-      clear_yadm_env = spy.new(function() end),
-      setup_yadm_env = spy.new(function() end),
-      get_yadm_repo_path = spy.new(function()
+      end,
+      clear_yadm_env = function() end,
+      setup_yadm_env = function() end,
+      get_yadm_repo_path = function()
         return "/test/yadm/repo.git"
-      end),
+      end,
     }
+    yadm.is_yadm_managed = spy.new(yadm.is_yadm_managed)
+    yadm.clear_yadm_env = spy.new(yadm.clear_yadm_env)
+    yadm.setup_yadm_env = spy.new(yadm.setup_yadm_env)
+    yadm.get_yadm_repo_path = spy.new(yadm.get_yadm_repo_path)
     package.preload["yadm-git.yadm"] = function()
       return yadm
     end
@@ -85,6 +96,8 @@ describe("event", function()
       yadm.is_yadm_managed = spy.new(function()
         return false
       end)
+      yadm.clear_yadm_env = spy.new(yadm.clear_yadm_env)
+      state.deactivate = spy.new(state.deactivate)
 
       callback()
 
@@ -101,6 +114,8 @@ describe("event", function()
       yadm.is_yadm_managed = spy.new(function()
         return true
       end)
+      yadm.setup_yadm_env = spy.new(yadm.setup_yadm_env)
+      state.activate = spy.new(state.activate)
 
       callback()
 

@@ -19,56 +19,67 @@ describe("yadm-git", function()
 
     -- Mock state module
     state = {
-      activate = stub.new(function() end),
-      is_active = stub.new(function()
+      activate = function() end,
+      is_active = function()
         return false
-      end),
-      get_yadm_repo_path = stub.new(function()
+      end,
+      get_yadm_repo_path = function()
         return nil
-      end),
-      get_state = stub.new(function()
+      end,
+      get_state = function()
         return { is_active = false, yadm_repo_path = nil }
-      end),
+      end,
     }
+    state.activate = stub(state, "activate")
+    state.is_active = stub(state, "is_active")
+    state.get_yadm_repo_path = stub(state, "get_yadm_repo_path")
+    state.get_state = stub(state, "get_state")
     package.preload["yadm-git.state"] = function()
       return state
     end
 
     -- Mock logger module
     logger = {
-      log = stub.new(function() end),
-      info = stub.new(function() end),
+      log = function() end,
+      info = function() end,
     }
+    logger.log = stub(logger, "log")
+    logger.info = stub(logger, "info")
     package.preload["yadm-git.logger"] = function()
       return logger
     end
 
     -- Mock yadm module
     yadm = {
-      is_yadm_managed = stub.new(function()
+      is_yadm_managed = function()
         return false
-      end),
-      setup_yadm_env = stub.new(function() end),
-      get_yadm_repo_path = stub.new(function()
+      end,
+      setup_yadm_env = function() end,
+      get_yadm_repo_path = function()
         return nil
-      end),
+      end,
     }
+    yadm.is_yadm_managed = stub(yadm, "is_yadm_managed")
+    yadm.setup_yadm_env = stub(yadm, "setup_yadm_env")
+    yadm.get_yadm_repo_path = stub(yadm, "get_yadm_repo_path")
     package.preload["yadm-git.yadm"] = function()
       return yadm
     end
 
     -- Mock options module
     options = {
-      setup = stub.new(function() end),
+      setup = function() end,
     }
+    options.setup = stub(options, "setup")
     package.preload["yadm-git.options"] = function()
       return options
     end
 
     -- Mock event module
     event = {
-      setup_auto_commands = stub.new(function() end),
+      setup_auto_commands = function() end,
     }
+    event.setup_auto_commands = stub(event, "setup_auto_commands")
     package.preload["yadm-git.event"] = function()
       return event
     end
