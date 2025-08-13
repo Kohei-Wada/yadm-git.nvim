@@ -2,10 +2,17 @@ local M = {}
 
 local logger = require "yadm-git.logger"
 
--- Check if a .git directory exists in current path hierarchy (indicates regular git)
-local function has_local_git_dir()
-  local git_path = vim.fn.finddir(".git", vim.fn.getcwd() .. ";")
-  return git_path ~= ""
+-- Check if a .git directory or file exists in current path hierarchy (indicates regular git)
+local function has_local_git()
+  -- Check for .git directory (regular repos)
+  local git_dir = vim.fn.finddir(".git", vim.fn.getcwd() .. ";")
+  if git_dir ~= "" then
+    return true
+  end
+
+  -- Check for .git file (worktrees)
+  local git_file = vim.fn.findfile(".git", vim.fn.getcwd() .. ";")
+  return git_file ~= ""
 end
 
 -- Get yadm repository path if it exists
@@ -45,9 +52,9 @@ end
 
 -- Main detection function using filesystem checks only
 function M.is_yadm_managed()
-  -- If there's a .git directory, it's regular git, not yadm
-  if has_local_git_dir() then
-    logger.debug "Found .git directory - not yadm managed"
+  -- If there's a .git directory or file, it's regular git, not yadm
+  if has_local_git() then
+    logger.debug "Found .git directory or file - not yadm managed"
     return false
   end
 
