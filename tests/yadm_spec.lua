@@ -23,6 +23,7 @@ describe("yadm-git.yadm", function()
     -- Mock vim.fn functions
     vim.fn = {
       finddir = stub(vim.fn, "finddir"),
+      findfile = stub(vim.fn, "findfile"),
       isdirectory = stub(vim.fn, "isdirectory"),
       getcwd = stub(vim.fn, "getcwd"),
       fnamemodify = stub(vim.fn, "fnamemodify"),
@@ -39,9 +40,10 @@ describe("yadm-git.yadm", function()
 
   describe("is_yadm_managed", function()
     it("returns true when not in git but has yadm repo and under HOME", function()
-      -- No .git directory
+      -- No .git directory or file
       vim.fn.getcwd.returns "/home/testuser/.config/nvim"
       vim.fn.finddir.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
+      vim.fn.findfile.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
       -- Has yadm repo
       vim.fn.isdirectory.on_call_with("/home/testuser/.local/share/yadm/repo.git").returns(1)
       -- Under HOME
@@ -58,10 +60,20 @@ describe("yadm-git.yadm", function()
       assert.is_false(yadm.is_yadm_managed())
     end)
 
+    it("returns false when in git worktree", function()
+      -- No .git directory but has .git file (worktree)
+      vim.fn.getcwd.returns "/some/worktree"
+      vim.fn.finddir.on_call_with(".git", "/some/worktree;").returns ""
+      vim.fn.findfile.on_call_with(".git", "/some/worktree;").returns "/some/worktree/.git"
+
+      assert.is_false(yadm.is_yadm_managed())
+    end)
+
     it("returns false when no yadm repo exists", function()
-      -- No .git directory
+      -- No .git directory or file
       vim.fn.getcwd.returns "/home/testuser/.config"
       vim.fn.finddir.on_call_with(".git", "/home/testuser/.config;").returns ""
+      vim.fn.findfile.on_call_with(".git", "/home/testuser/.config;").returns ""
       -- No yadm repo
       vim.fn.isdirectory.returns(0)
 
@@ -69,9 +81,10 @@ describe("yadm-git.yadm", function()
     end)
 
     it("returns false when not under HOME", function()
-      -- No .git directory
+      -- No .git directory or file
       vim.fn.getcwd.returns "/tmp/test"
       vim.fn.finddir.on_call_with(".git", "/tmp/test;").returns ""
+      vim.fn.findfile.on_call_with(".git", "/tmp/test;").returns ""
       -- Has yadm repo
       vim.fn.isdirectory.on_call_with("/home/testuser/.local/share/yadm/repo.git").returns(1)
       -- Not under HOME
