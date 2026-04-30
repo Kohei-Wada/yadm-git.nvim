@@ -4,11 +4,13 @@ local stub = require "luassert.stub"
 describe("yadm-git.yadm", function()
   local orig_vim_fn
   local orig_vim_env
+  local orig_vim_uv
   local logger
 
   before_each(function()
     orig_vim_fn = vim.fn
     orig_vim_env = vim.env
+    orig_vim_uv = vim.uv
     logger = require "yadm-git.logger"
     stub(logger, "warn")
     stub(logger, "info")
@@ -28,11 +30,19 @@ describe("yadm-git.yadm", function()
       getcwd = stub(vim.fn, "getcwd"),
       fnamemodify = stub(vim.fn, "fnamemodify"),
     }
+
+    -- Mock vim.uv.os_homedir (defaults to same as HOME)
+    vim.uv = {
+      os_homedir = function()
+        return "/home/testuser"
+      end,
+    }
   end)
 
   after_each(function()
     vim.fn = orig_vim_fn
     vim.env = orig_vim_env
+    vim.uv = orig_vim_uv
     logger.warn:revert()
     logger.info:revert()
     logger.debug:revert()
@@ -91,6 +101,25 @@ describe("yadm-git.yadm", function()
       vim.fn.fnamemodify.returns "/tmp/test/"
 
       assert.is_false(yadm.is_yadm_managed())
+    end)
+
+    -- Regression: immutable distros (Bazzite, etc.) where $HOME points to the
+    -- physical path (/var/home/user) but /etc/passwd — and therefore
+    -- vim.fn.fnamemodify(":p") — yields the symlink path (/home/user).
+    -- vim.uv.os_homedir() agrees with passwd, so use that as the source of truth.
+    it("returns true on immutable distros where $HOME and passwd disagree", function()
+      vim.env.HOME = "/var/home/testuser"
+      vim.uv.os_homedir = function()
+        return "/home/testuser"
+      end
+
+      vim.fn.getcwd.returns "/home/testuser/.config/nvim"
+      vim.fn.finddir.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
+      vim.fn.findfile.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
+      vim.fn.isdirectory.on_call_with("/home/testuser/.local/share/yadm/repo.git").returns(1)
+      vim.fn.fnamemodify.returns "/home/testuser/.config/nvim/"
+
+      assert.is_true(yadm.is_yadm_managed())
     end)
   end)
 

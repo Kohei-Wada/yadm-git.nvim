@@ -2,6 +2,15 @@ local M = {}
 
 local logger = require "yadm-git.logger"
 
+-- Resolve the user's home directory.
+-- Prefer vim.uv.os_homedir() over $HOME because on immutable distros (Bazzite,
+-- etc.) $HOME points to the physical path (/var/home/user) while /etc/passwd —
+-- and vim.fn.fnamemodify(":p") — yields the symlink path (/home/user). See
+-- issue #19. Falls back to $HOME when libuv cannot determine it.
+local function get_home()
+  return vim.uv.os_homedir() or vim.env.HOME
+end
+
 -- Check if a .git directory or file exists in current path hierarchy (indicates regular git)
 local function has_local_git()
   -- Check for .git directory (regular repos)
@@ -17,12 +26,13 @@ end
 
 -- Get yadm repository path if it exists
 function M.get_yadm_repo_path()
-  if not vim.env.HOME then
-    logger.warn "HOME environment variable is not set"
+  local home = get_home()
+  if not home then
+    logger.warn "Could not determine home directory"
     return nil
   end
   -- Check modern location first (v3+)
-  local xdg_data = vim.env.XDG_DATA_HOME or (vim.env.HOME .. "/.local/share")
+  local xdg_data = vim.env.XDG_DATA_HOME or (home .. "/.local/share")
   local modern_path = xdg_data .. "/yadm/repo.git"
   if vim.fn.isdirectory(modern_path) == 1 then
     logger.debug("Found yadm repo at modern location: " .. modern_path)
@@ -30,7 +40,7 @@ function M.get_yadm_repo_path()
   end
 
   -- Check legacy location
-  local legacy_path = vim.env.HOME .. "/.yadm/repo.git"
+  local legacy_path = home .. "/.yadm/repo.git"
   if vim.fn.isdirectory(legacy_path) == 1 then
     logger.debug("Found yadm repo at legacy location: " .. legacy_path)
     return legacy_path
@@ -41,7 +51,7 @@ end
 
 -- Check if current directory is under HOME
 local function is_under_home()
-  local home = vim.env.HOME
+  local home = get_home()
   if not home then
     return false
   end
@@ -83,9 +93,10 @@ function M.setup_yadm_env()
     return
   end
 
+  local home = get_home()
   vim.env.GIT_DIR = yadm_repo
-  vim.env.GIT_WORK_TREE = vim.env.HOME
-  logger.info("Set GIT_DIR=" .. yadm_repo .. " GIT_WORK_TREE=" .. vim.env.HOME)
+  vim.env.GIT_WORK_TREE = home
+  logger.info("Set GIT_DIR=" .. yadm_repo .. " GIT_WORK_TREE=" .. home)
 end
 
 function M.clear_yadm_env()
