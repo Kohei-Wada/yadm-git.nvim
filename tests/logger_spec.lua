@@ -12,8 +12,8 @@ describe("logger", function()
     -- Mock options
     options = {
       opts = {
-        debug = false
-      }
+        debug = false,
+      },
     }
     package.preload["yadm-git.options"] = function()
       return options
@@ -27,8 +27,8 @@ describe("logger", function()
         DEBUG = 1,
         INFO = 2,
         WARN = 3,
-        ERROR = 4
-      }
+        ERROR = 4,
+      },
     }
 
     -- Load the module
@@ -43,13 +43,13 @@ describe("logger", function()
   describe("log", function()
     it("should not call vim.notify when debug is false", function()
       options.opts.debug = false
-      logger.log("test message")
+      logger.log "test message"
       assert.spy(vim.notify).was_not_called()
     end)
 
     it("should call vim.notify when debug is true", function()
       options.opts.debug = true
-      logger.log("test message")
+      logger.log "test message"
       assert.spy(vim.notify).was_called_with("[yadm-git] test message", vim.log.levels.INFO)
     end)
 
@@ -58,28 +58,58 @@ describe("logger", function()
       logger.log("test message", vim.log.levels.WARN)
       assert.spy(vim.notify).was_called_with("[yadm-git] test message", vim.log.levels.WARN)
     end)
+
+    it("should call vim.notify for WARN even when debug is false", function()
+      options.opts.debug = false
+      logger.log("warn message", vim.log.levels.WARN)
+      assert.spy(vim.notify).was_called_with("[yadm-git] warn message", vim.log.levels.WARN)
+    end)
+
+    it("should call vim.notify for ERROR even when debug is false", function()
+      options.opts.debug = false
+      logger.log("error message", vim.log.levels.ERROR)
+      assert.spy(vim.notify).was_called_with("[yadm-git] error message", vim.log.levels.ERROR)
+    end)
   end)
 
   describe("debug", function()
     it("should call log with DEBUG level", function()
       options.opts.debug = true
-      logger.debug("debug message")
+      logger.debug "debug message"
       assert.spy(vim.notify).was_called_with("[yadm-git] debug message", vim.log.levels.DEBUG)
+    end)
+
+    it("should be silenced when debug is false", function()
+      options.opts.debug = false
+      logger.debug "debug message"
+      assert.spy(vim.notify).was_not_called()
     end)
   end)
 
   describe("info", function()
     it("should call log with INFO level", function()
       options.opts.debug = true
-      logger.info("info message")
+      logger.info "info message"
       assert.spy(vim.notify).was_called_with("[yadm-git] info message", vim.log.levels.INFO)
+    end)
+
+    it("should be silenced when debug is false", function()
+      options.opts.debug = false
+      logger.info "info message"
+      assert.spy(vim.notify).was_not_called()
     end)
   end)
 
   describe("warn", function()
     it("should call log with WARN level", function()
       options.opts.debug = true
-      logger.warn("warning message")
+      logger.warn "warning message"
+      assert.spy(vim.notify).was_called_with("[yadm-git] warning message", vim.log.levels.WARN)
+    end)
+
+    it("should emit even when debug is false", function()
+      options.opts.debug = false
+      logger.warn "warning message"
       assert.spy(vim.notify).was_called_with("[yadm-git] warning message", vim.log.levels.WARN)
     end)
   end)
@@ -87,7 +117,13 @@ describe("logger", function()
   describe("error", function()
     it("should call log with ERROR level", function()
       options.opts.debug = true
-      logger.error("error message")
+      logger.error "error message"
+      assert.spy(vim.notify).was_called_with("[yadm-git] error message", vim.log.levels.ERROR)
+    end)
+
+    it("should emit even when debug is false", function()
+      options.opts.debug = false
+      logger.error "error message"
       assert.spy(vim.notify).was_called_with("[yadm-git] error message", vim.log.levels.ERROR)
     end)
   end)

@@ -2,8 +2,9 @@ local M = {}
 
 M.log = function(msg, level)
   local opts = require("yadm-git.options").opts
-  if opts.debug then
-    vim.notify("[yadm-git] " .. msg, level or vim.log.levels.INFO)
+  level = level or vim.log.levels.INFO
+  if opts.debug or level >= vim.log.levels.WARN then
+    vim.notify("[yadm-git] " .. msg, level)
   end
 end
 
