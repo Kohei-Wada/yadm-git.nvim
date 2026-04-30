@@ -121,6 +121,22 @@ describe("yadm-git.yadm", function()
 
       assert.is_true(yadm.is_yadm_managed())
     end)
+
+    -- Regression: when libuv cannot determine the home directory, fall back to
+    -- $HOME so behavior is no worse than before the os_homedir switch.
+    it("falls back to $HOME when vim.uv.os_homedir() returns nil", function()
+      vim.uv.os_homedir = function()
+        return nil
+      end
+
+      vim.fn.getcwd.returns "/home/testuser/.config/nvim"
+      vim.fn.finddir.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
+      vim.fn.findfile.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
+      vim.fn.isdirectory.on_call_with("/home/testuser/.local/share/yadm/repo.git").returns(1)
+      vim.fn.fnamemodify.returns "/home/testuser/.config/nvim/"
+
+      assert.is_true(yadm.is_yadm_managed())
+    end)
   end)
 
   describe("setup_yadm_env", function()
@@ -161,6 +177,21 @@ describe("yadm-git.yadm", function()
       assert.stub(logger.warn).was_called_with "Could not find yadm repository"
       assert.is_nil(vim.env.GIT_DIR)
       assert.is_nil(vim.env.GIT_WORK_TREE)
+    end)
+
+    -- Regression: on immutable distros, GIT_WORK_TREE must follow os_homedir
+    -- (passwd value) rather than $HOME, matching how Neovim resolves paths.
+    it("sets GIT_WORK_TREE from os_homedir, not $HOME, when they disagree", function()
+      vim.env.HOME = "/var/home/testuser"
+      vim.uv.os_homedir = function()
+        return "/home/testuser"
+      end
+      vim.fn.isdirectory.on_call_with("/home/testuser/.local/share/yadm/repo.git").returns(1)
+
+      yadm.setup_yadm_env()
+
+      assert.equals("/home/testuser/.local/share/yadm/repo.git", vim.env.GIT_DIR)
+      assert.equals("/home/testuser", vim.env.GIT_WORK_TREE)
     end)
   end)
 
