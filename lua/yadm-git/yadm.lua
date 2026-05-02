@@ -3,12 +3,13 @@ local M = {}
 local logger = require "yadm-git.logger"
 
 -- Resolve the user's home directory.
--- Prefer vim.uv.os_homedir() over $HOME because on immutable distros (Bazzite,
--- etc.) $HOME points to the physical path (/var/home/user) while /etc/passwd —
--- and vim.fn.fnamemodify(":p") — yields the symlink path (/home/user). See
--- issue #19. Falls back to $HOME when libuv cannot determine it.
+-- Prefer `vim.fn.expand("~")` over `vim.uv.os_homedir()` or $HOME because on immutable distros
+-- (Bazzite, etc.) the folder /home/ is a symlink to /var/home/ which is resolved by Neovim
+-- in the functions `vim.fn.fnamemodify()` and `vim.fn.getcwd()` but not when using $HOME
+-- or libuv's `os_homedir()`.
+-- See issue #19 for more information.
 local function get_home()
-  return vim.uv.os_homedir() or vim.env.HOME
+  return vim.fn.expand "~"
 end
 
 -- Check if a .git directory or file exists in current path hierarchy (indicates regular git)
