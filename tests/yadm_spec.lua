@@ -29,14 +29,10 @@ describe("yadm-git.yadm", function()
       isdirectory = stub(vim.fn, "isdirectory"),
       getcwd = stub(vim.fn, "getcwd"),
       fnamemodify = stub(vim.fn, "fnamemodify"),
+      expand = stub(vim.fn, "expand"),
     }
-
-    -- Mock vim.uv.os_homedir (defaults to same as HOME)
-    vim.uv = {
-      os_homedir = function()
-        return "/home/testuser"
-      end,
-    }
+    -- Mock vim.fn.expand (defaults to same as HOME)
+    vim.fn.expand.returns "/home/testuser"
   end)
 
   after_each(function()
@@ -104,36 +100,18 @@ describe("yadm-git.yadm", function()
     end)
 
     -- Regression: immutable distros (Bazzite, etc.) where $HOME points to the
-    -- physical path (/var/home/user) but /etc/passwd — and therefore
-    -- vim.fn.fnamemodify(":p") — yields the symlink path (/home/user).
-    -- vim.uv.os_homedir() agrees with passwd, so use that as the source of truth.
-    it("returns true on immutable distros where $HOME and passwd disagree", function()
-      vim.env.HOME = "/var/home/testuser"
-      vim.uv.os_homedir = function()
-        return "/home/testuser"
-      end
+    -- symlinked path (/home/user) but `vim.fn.fnamemodify()` and `vim.fn.getcwd()`
+    -- resolve symlinks and thus return /var/home/user.
+    -- `vim.fn.expand("~")` also resolves symlinks, so use that as the source of truth.
+    it("returns true on immutable distros where /home/ is a symlink to /var/home/", function()
+      vim.env.HOME = "/home/testuser"
 
-      vim.fn.getcwd.returns "/home/testuser/.config/nvim"
-      vim.fn.finddir.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
-      vim.fn.findfile.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
-      vim.fn.isdirectory.on_call_with("/home/testuser/.local/share/yadm/repo.git").returns(1)
-      vim.fn.fnamemodify.returns "/home/testuser/.config/nvim/"
-
-      assert.is_true(yadm.is_yadm_managed())
-    end)
-
-    -- Regression: when libuv cannot determine the home directory, fall back to
-    -- $HOME so behavior is no worse than before the os_homedir switch.
-    it("falls back to $HOME when vim.uv.os_homedir() returns nil", function()
-      vim.uv.os_homedir = function()
-        return nil
-      end
-
-      vim.fn.getcwd.returns "/home/testuser/.config/nvim"
-      vim.fn.finddir.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
-      vim.fn.findfile.on_call_with(".git", "/home/testuser/.config/nvim;").returns ""
-      vim.fn.isdirectory.on_call_with("/home/testuser/.local/share/yadm/repo.git").returns(1)
-      vim.fn.fnamemodify.returns "/home/testuser/.config/nvim/"
+      vim.fn.expand.returns "/var/home/testuser"
+      vim.fn.getcwd.returns "/var/home/testuser/.config/nvim"
+      vim.fn.finddir.on_call_with(".git", "/var/home/testuser/.config/nvim;").returns ""
+      vim.fn.findfile.on_call_with(".git", "/var/home/testuser/.config/nvim;").returns ""
+      vim.fn.isdirectory.on_call_with("/var/home/testuser/.local/share/yadm/repo.git").returns(1)
+      vim.fn.fnamemodify.returns "/var/home/testuser/.config/nvim/"
 
       assert.is_true(yadm.is_yadm_managed())
     end)
@@ -179,19 +157,18 @@ describe("yadm-git.yadm", function()
       assert.is_nil(vim.env.GIT_WORK_TREE)
     end)
 
-    -- Regression: on immutable distros, GIT_WORK_TREE must follow os_homedir
-    -- (passwd value) rather than $HOME, matching how Neovim resolves paths.
-    it("sets GIT_WORK_TREE from os_homedir, not $HOME, when they disagree", function()
-      vim.env.HOME = "/var/home/testuser"
-      vim.uv.os_homedir = function()
-        return "/home/testuser"
-      end
-      vim.fn.isdirectory.on_call_with("/home/testuser/.local/share/yadm/repo.git").returns(1)
+    -- Regression: on immutable distros, GIT_WORK_TREE must follow symlinks
+    -- rather than just using $HOME, matching how Neovim resolves paths.
+    it("sets GIT_WORK_TREE from vim.fn.expand, not $HOME, when they disagree", function()
+      vim.env.HOME = "/home/testuser"
+      vim.fn.expand.returns "/var/home/testuser"
+
+      vim.fn.isdirectory.on_call_with("/var/home/testuser/.local/share/yadm/repo.git").returns(1)
 
       yadm.setup_yadm_env()
 
-      assert.equals("/home/testuser/.local/share/yadm/repo.git", vim.env.GIT_DIR)
-      assert.equals("/home/testuser", vim.env.GIT_WORK_TREE)
+      assert.equals("/var/home/testuser/.local/share/yadm/repo.git", vim.env.GIT_DIR)
+      assert.equals("/var/home/testuser", vim.env.GIT_WORK_TREE)
     end)
   end)
 
